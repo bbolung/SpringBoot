@@ -1,0 +1,23 @@
+{{>layouts/header}}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Email</th>
+            <th scope="col">Password</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#memberList}}
+        <tr>
+            <th>{{id}}</th>
+            <th><a href="/member/{{id}}">{{email}}</a></th>
+            <th>{{password}}</th>
+        </tr>
+        {{/memberList}}
+    </tbody>
+</table>
+<a href="/member/signup">New Article</a>
+
+{{>layouts/footer}}
