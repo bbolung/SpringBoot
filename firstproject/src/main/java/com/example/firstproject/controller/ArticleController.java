@@ -10,24 +10,26 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Optional;
 
 @Controller
 @Slf4j
+@RequestMapping("/articles")
 public class ArticleController {
 
     @Autowired
     private ArticleRepository articleRepository;
 
-    @GetMapping("/articles/new")
+    @GetMapping("/new")
     public String newArticleForm() {
         log.info("New article form");
         return "articles/new";
     }
 
-    @PostMapping("/articles/create")
+    @PostMapping("/create")
     public String createArticle(ArticleForm form){
         log.info("New article created");
         log.info("articleForm: {}", form);
@@ -43,7 +45,7 @@ public class ArticleController {
     }
     
     //단일 데이터 조회
-    @GetMapping("/articles/{id}")
+    @GetMapping("/{id}")
     public String show(@PathVariable("id") Long id, Model model) {
         log.info("Show article");
 
@@ -61,7 +63,7 @@ public class ArticleController {
     }
 
     //전체 데이터 조회
-    @GetMapping("/articles")
+    @GetMapping("")
     public String index(Model model) {
 
         // 1. 모든 데이터 가져오기
@@ -74,5 +76,12 @@ public class ArticleController {
 
         // 3. 뷰 페이지 설정하기
         return "articles/index";
+    }
+
+    //게시글 수정
+    @GetMapping("/{id}/edit")
+    public String edit(@PathVariable("id") Long id) {
+
+        return "articles/edit";
     }
 }
