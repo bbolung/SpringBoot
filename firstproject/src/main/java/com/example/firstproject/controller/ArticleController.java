@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -78,10 +79,53 @@ public class ArticleController {
         return "articles/index";
     }
 
-    //게시글 수정
+    //게시글 수정: localhost:8080/articles/2/edit 요청 -> edit() 메소드가 응답
     @GetMapping("/{id}/edit")
-    public String edit(@PathVariable("id") Long id) {
+    public String edit(@PathVariable("id") Long id, Model model) {
 
+        // 1. 수정할 데이터 가져오기
+        Article articleEntity = articleRepository.findById(id).orElse(null); //id값이 존재하지 않을 경우 에러 발생하지 않도록 null
+
+        // 2. Model에 데이터 등록하기
+        model.addAttribute("article", articleEntity);
+
+        //3. View 페이지 설정하기
         return "articles/edit";
+    }
+
+    @PostMapping("/update")
+    public String updateArticle(ArticleForm form) {
+
+        log.info("Update article: {}", form);
+
+        // 1. DTO를 Entity로 변환하기
+        Article articleEntity = form.toEntity();
+
+        // 2. Entity를 DB에 저장하기(동일한 id값 존재하는지 확인 후 저장)
+        Article target = articleRepository.findById(articleEntity.getId()).orElse(null);
+
+        if(target != null) {
+            articleRepository.save(articleEntity);
+        }
+
+        // 3. 수정 결과 -> 상세페이지로 redirect
+        return "redirect:/articles/" + articleEntity.getId();
+    }
+
+    //게시글 삭제 : localhost:8080/articles/2/delete 요청 -> delete() 메소드가 응답
+    @GetMapping("/{id}/delete")
+    public String delete(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+
+        // 1. 삭제할 데이터 가져오기
+        Article target = articleRepository.findById(id).orElse(null); //id값이 존재하지 않을 경우 에러 발생하지 않도록 null
+
+        // 2. 대상 Entity 삭제, message 1번만 표시
+        if(target != null) {
+            articleRepository.delete(target);
+            redirectAttributes.addFlashAttribute("msg", "삭제했습니다!");
+        }
+
+        //3. 결과 페이지(전체 목록 페이지) redirect
+        return "redirect:/articles";
     }
 }
