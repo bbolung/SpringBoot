@@ -3,13 +3,17 @@ package com.example.firstproject.service;
 import com.example.firstproject.dto.ArticleForm;
 import com.example.firstproject.entity.Article;
 import com.example.firstproject.repository.ArticleRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -84,4 +88,35 @@ public class ArticleService {
         return target;
     }
 
+    private final EntityManager entityManger;
+
+    @Transactional
+    public List<Article> createArticles(List<ArticleForm> dtos) {
+
+        // 0. toEntity(List<Article> articles) 변환
+        ArticleForm articleForm = new ArticleForm();
+        List<Article> articleLists2 = articleForm.toEntity(dtos);
+
+        // 1. dto 묶음 -> Entity 묶음으로 변환
+        List<Article> articleList = dtos.stream().map(dto -> dto.toEntity())
+                                        .collect(Collectors.toList());
+
+        // 2. Entity 묶음을 DB에 저장
+        articleList.stream().forEach(article -> articleRepository.save(article));
+
+        entityManger.flush();
+
+        /*
+        for(Article article : articelList){
+            articleRepository.save(article);
+        }
+        */
+
+        // 3. 강제 예외 발생시키기(지금 저장했던 내용을 rollback)
+        articleRepository.findById(-1L)
+                        .orElseThrow(() -> new IllegalArgumentException("결제 실패!!!"));
+
+        // 4. 결과 값 반환
+        return articleList;
+    }
 }
